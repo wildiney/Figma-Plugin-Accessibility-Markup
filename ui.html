@@ -1,0 +1,223 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Document</title>
+    <style>
+      body {
+        font-family: Inter, Arial, Verdana, sans-serif;
+        background-color: var(--figma-color-bg);
+      }
+      h1,
+      h2,
+      h3,
+      h4,
+      h5,
+      h6 {
+        color: var(--figma-color-text);
+      }
+      .form-group {
+        display: flex;
+        flex-direction: column;
+        margin-bottom: 1rem;
+      }
+      .form-group label,
+      .form-group legend {
+        margin-bottom: 0.5rem;
+        font-size: 0.85rem;
+        font-weight: 700;
+        color: var(--figma-color-text);
+      }
+      .input-controls {
+        width: 100%;
+        display: flex;
+        flex-direction: row;
+        gap: 1rem;
+      }
+      .input-controls input {
+        width: 100%;
+        height: 3rem;
+        font-size: 1.5rem;
+        text-align: center;
+        border: 2px solid var(--figma-color-border-strong);
+        background-color: var(--figma-color-bg);
+        color: var(--figma-color-text);
+        font-size: 2rem;
+        border-radius: 0.5rem;
+      }
+      .grid {
+        width: 5rem;
+        height: 5rem;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        align-items: center;
+      }
+      .grid label {
+        align-self: center;
+        justify-self: center;
+      }
+      .grid label,
+      .grid input {
+        margin: 0;
+      }
+      fieldset {
+        border: none;
+        margin: 0;
+        padding: 0;
+      }
+      button {
+        border: 2px solid var(--figma-color-border-strong);
+        background-color: var(--figma-color-bg);
+        color: var(--figma-color-text);
+        border-radius: 0.5rem;
+        cursor: pointer;
+      }
+      button.lg {
+        font-size: 2rem;
+      }
+      button.md {
+        font-size: 1.5rem;
+      }
+      button.sm {
+        font-size: 1rem;
+      }
+
+      #increment-item,
+      #decrement-item {
+        height: 3rem;
+        aspect-ratio: 1/1;
+      }
+      #reset-item {
+        height: 3rem;
+        aspect-ratio: 2/1;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>Accessibility Markup</h2>
+
+    <div class="form-group">
+      <label for="number">Item number:</label>
+      <div class="input-controls">
+        <button id="decrement-item" class="lg">-</button>
+        <input type="text" name="number" id="number" value="1" />
+        <button id="increment-item" class="lg">+</button>
+      </div>
+    </div>
+    <div style="display: flex; width: 100%; gap: 1rem">
+      <div class="form-group">
+        <fieldset>
+          <legend>Anchor:</legend>
+          <div class="grid">
+            <label>
+              <input type="radio" name="position" value="top_left" />
+            </label>
+            <label>
+              <input type="radio" name="position" value="top_center" />
+            </label>
+            <label>
+              <input type="radio" name="position" value="top_right" />
+            </label>
+            <label>
+              <input type="radio" name="position" value="middle_left" />
+            </label>
+            <label> </label>
+            <label>
+              <input
+                type="radio"
+                name="position"
+                value="middle_right"
+                checked
+              />
+            </label>
+            <label>
+              <input type="radio" name="position" value="bottom_left" />
+            </label>
+            <label>
+              <input type="radio" name="position" value="bottom_center" />
+            </label>
+            <label>
+              <input type="radio" name="position" value="bottom_right" />
+            </label>
+          </div>
+        </fieldset>
+      </div>
+      <button
+        id="insert-markup-frame"
+        class="sm"
+        style="height: 4.1rem; align-self: top; margin-top: 2rem; width: 100%"
+      >
+        Insert Markup Frame
+      </button>
+    </div>
+    <script>
+      const itemNumberInput = document.getElementById('number')
+      const incrementItemButton = document.getElementById('increment-item')
+      const decrementItemButton = document.getElementById('decrement-item')
+      const insertMarkupButton = document.getElementById('insert-markup-frame')
+
+      function sendNewNumberItem(value) {
+        parent.postMessage(
+          {
+            pluginMessage: { type: 'change-number', value: value },
+          },
+          '*'
+        )
+      }
+
+      function changeNumber(type) {
+        const value = itemNumberInput.value
+        const splitedNumber = value.split('.')
+        let lastItem = null
+        if (type === 'increment') {
+          lastItem = parseInt(splitedNumber[splitedNumber.length - 1]) + 1
+        } else {
+          lastItem = parseInt(splitedNumber[splitedNumber.length - 1]) - 1
+        }
+        lastItem < 0 ? 0 : lastItem
+        splitedNumber[splitedNumber.length - 1] = lastItem.toString()
+        const newValue = splitedNumber.join('.')
+        itemNumberInput.value = newValue
+        sendNewNumberItem(newValue)
+      }
+
+      itemNumberInput.onchange = () => {
+        sendNewNumberItem(itemNumberInput.value)
+      }
+
+      incrementItemButton.onclick = () => {
+        changeNumber('increment')
+      }
+
+      decrementItemButton.onclick = () => {
+        changeNumber('decrement')
+      }
+
+      insertMarkupButton.onclick = () => {
+        const value = parseInt(itemNumberInput.value, 10)
+
+        const marker = document.querySelector(
+          'input[name="position"]:checked'
+        ).value
+        parent.postMessage(
+          {
+            pluginMessage: {
+              type: 'insert-markup-frame',
+              marker: marker,
+              value: value,
+            },
+          },
+          '*'
+        )
+      }
+      window.onmessage = (event) => {
+        console.log(event.data.pluginMessage)
+        const { type, newValue } = event.data.pluginMessage
+        if (type === 'change-number') {
+          itemNumberInput.value = newValue
+        }
+      }
+    </script>
+  </body>
+</html>
