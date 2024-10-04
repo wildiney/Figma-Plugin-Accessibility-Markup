@@ -22,8 +22,8 @@
         flex-direction: column;
         margin-bottom: 1rem;
       }
-      .form-group label,
-      .form-group legend {
+      label,
+      legend {
         margin-bottom: 0.5rem;
         font-size: 0.85rem;
         font-weight: 700;
@@ -151,6 +151,12 @@
         Insert Markup Frame
       </button>
     </div>
+    <div>
+      <label>
+        <input type="checkbox" id="addSpace" checked />
+        Add space
+      </label>
+    </div>
     <script>
       const itemNumberInput = document.getElementById('number')
       const incrementItemButton = document.getElementById('increment-item')
@@ -200,12 +206,16 @@
         const marker = document.querySelector(
           'input[name="position"]:checked'
         ).value
+
+        const addSpace = document.getElementById('addSpace').checked
+        console.log(addSpace)
         parent.postMessage(
           {
             pluginMessage: {
               type: 'insert-markup-frame',
               marker: marker,
               value: value,
+              addSpace: addSpace,
             },
           },
           '*'

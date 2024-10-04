@@ -2,8 +2,9 @@ let initialNumber = "1"
 
 figma.showUI(__html__, { width: 300, height: 400, themeColors: true });
 
-figma.ui.onmessage = async (msg: { type: string, marker?: string, value?: number }) => {
+figma.ui.onmessage = async (msg: { type: string, marker?: string, value?: number, addSpace?: boolean }) => {
   await figma.loadAllPagesAsync()
+  console.log("addSpace", msg.addSpace)
 
   msg.marker != null ? console.log("marker", msg.marker) : null
 
@@ -57,9 +58,52 @@ figma.ui.onmessage = async (msg: { type: string, marker?: string, value?: number
 
         if (variant) {
           const instance = variant.createInstance()
-          instance.x = selectedFrame.absoluteTransform[0][2]
-          instance.y = selectedFrame.absoluteTransform[1][2]
-          instance.resize(selectedFrame.width, selectedFrame.height)
+          const addSpaceValue = msg.addSpace == true ? 32 : 0
+
+          switch (msg.marker) {
+            case "top_left":
+              instance.x = selectedFrame.absoluteTransform[0][2] - addSpaceValue
+              instance.y = selectedFrame.absoluteTransform[1][2] - addSpaceValue
+              instance.resize(selectedFrame.width + addSpaceValue, selectedFrame.height + addSpaceValue)
+              break
+            case "top_center":
+              instance.x = selectedFrame.absoluteTransform[0][2]
+              instance.y = selectedFrame.absoluteTransform[1][2] - addSpaceValue
+              instance.resize(selectedFrame.width, selectedFrame.height + addSpaceValue)
+              break
+            case "top_right":
+              instance.x = selectedFrame.absoluteTransform[0][2]
+              instance.y = selectedFrame.absoluteTransform[1][2] - addSpaceValue
+              instance.resize(selectedFrame.width + addSpaceValue, selectedFrame.height + addSpaceValue)
+              break
+            case "middle_left":
+              instance.x = selectedFrame.absoluteTransform[0][2] - addSpaceValue
+              instance.y = selectedFrame.absoluteTransform[1][2]
+              instance.resize(selectedFrame.width + addSpaceValue, selectedFrame.height)
+              break
+            case "middle_right":
+              instance.x = selectedFrame.absoluteTransform[0][2]
+              instance.y = selectedFrame.absoluteTransform[1][2]
+              instance.resize(selectedFrame.width + addSpaceValue, selectedFrame.height)
+              break
+            case "bottom_left":
+              instance.x = selectedFrame.absoluteTransform[0][2] - addSpaceValue
+              instance.y = selectedFrame.absoluteTransform[1][2]
+              instance.resize(selectedFrame.width + addSpaceValue, selectedFrame.height + addSpaceValue)
+              break
+            case "bottom_center":
+              instance.x = selectedFrame.absoluteTransform[0][2]
+              instance.y = selectedFrame.absoluteTransform[1][2]
+              instance.resize(selectedFrame.width, selectedFrame.height + addSpaceValue)
+              break
+            case "bottom_right":
+              instance.x = selectedFrame.absoluteTransform[0][2]
+              instance.y = selectedFrame.absoluteTransform[1][2]
+              instance.resize(selectedFrame.width + addSpaceValue, selectedFrame.height + addSpaceValue)
+              break
+
+          }
+
           figma.currentPage.appendChild(instance)
           const textNode = instance.findOne(node => node.type === "TEXT" && node.characters === "0") as TextNode
           if (textNode) {
