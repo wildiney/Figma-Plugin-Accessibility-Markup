@@ -1,9 +1,12 @@
 let initialNumber = "1"
 
 figma.showUI(__html__, { width: 300, height: 400, themeColors: true });
+async function main () {
+  await figma.loadAllPagesAsync()
+}
+main()
 
 figma.ui.onmessage = async (msg: { type: string, marker?: string, value?: number, addSpace?: boolean }) => {
-  await figma.loadAllPagesAsync()
   console.log("addSpace", msg.addSpace)
 
   msg.marker != null ? console.log("marker", msg.marker) : null

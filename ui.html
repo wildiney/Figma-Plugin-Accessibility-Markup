@@ -20,12 +20,12 @@
       .form-group {
         display: flex;
         flex-direction: column;
-        margin-bottom: 1rem;
+        margin-bottom: 2rem;
       }
       label,
       legend {
         margin-bottom: 0.5rem;
-        font-size: 0.85rem;
+        font-size: 0.95rem;
         font-weight: 700;
         color: var(--figma-color-text);
       }
@@ -98,7 +98,9 @@
     <h2>Accessibility Markup</h2>
 
     <div class="form-group">
-      <label for="number">Item number:</label>
+      <label for="number"
+        >Item number <small>(Ex.: 1, 1.1, 1.1.1, etc.)</small>:</label
+      >
       <div class="input-controls">
         <button id="decrement-item" class="lg">-</button>
         <input type="text" name="number" id="number" value="1" />
