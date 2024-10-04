@@ -58,7 +58,7 @@ figma.ui.onmessage = async (msg: { type: string, marker?: string, value?: number
 
         if (variant) {
           const instance = variant.createInstance()
-          const addSpaceValue = msg.addSpace == true ? 32 : 0
+          const addSpaceValue = msg.addSpace == true ? 24 : 0
 
           switch (msg.marker) {
             case "top_left":
