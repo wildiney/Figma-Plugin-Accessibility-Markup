@@ -3,7 +3,7 @@ let initialNumber = "1";
 figma.showUI(__html__, { width: 300, height: 400, themeColors: true });
 
 figma.ui.onmessage = async (msg) => {
-  await figma.loadAllPagesAsync();
+  // await figma.loadAllPagesAsync();
 
   const position: { [key: string]: string } = {
     top_left: "Posição do marcador=↖️",
@@ -43,7 +43,7 @@ async function handleInsertMarkupFrame (msg: { marker?: string; addSpace?: numbe
   const instanceName = msg.marker ? position[msg.marker] : null;
 
   if (selectedFrame && ["FRAME", "INSTANCE", "TEXT"].includes(selectedFrame.type)) {
-    const componentSet = figma.root.findOne(node => node.name === "Specs-Component" && node.type === "COMPONENT_SET") as ComponentSetNode;
+    const componentSet = figma.currentPage.findOne(node => node.name === "Specs-Component" && node.type === "COMPONENT_SET") as ComponentSetNode;
 
     if (componentSet) {
       const variant = componentSet.findOne(node => node.name === instanceName && node.type === "COMPONENT") as ComponentNode;
