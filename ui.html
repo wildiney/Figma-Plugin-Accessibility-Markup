@@ -205,7 +205,7 @@
         const marker = document.querySelector(
           'input[name="position"]:checked'
         ).value
-        const space = parseInt(document.getElementById('addSpace').value)
+        const space = parseInt(document.getElementById('addSpace').value) || 0
 
         parent.postMessage(
           {
@@ -213,7 +213,7 @@
               type: 'insert-markup-frame',
               marker: marker,
               value: value,
-              addSpace: space,
+              spacing: space,
             },
           },
           '*'

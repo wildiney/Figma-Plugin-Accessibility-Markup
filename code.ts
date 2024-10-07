@@ -3,25 +3,13 @@ let initialNumber = "1";
 figma.showUI(__html__, { width: 300, height: 400, themeColors: true });
 
 figma.ui.onmessage = async (msg) => {
-  // await figma.loadAllPagesAsync();
-
-  const position: { [key: string]: string } = {
-    top_left: "Posição do marcador=↖️",
-    top_center: "Posição do marcador=↑",
-    top_right: "Posição do marcador=↗",
-    middle_left: "Posição do marcador=←",
-    middle_right: "Posição do marcador=→",
-    bottom_left: "Posição do marcador=↙",
-    bottom_center: "Posição do marcador=↓",
-    bottom_right: "Posição do marcador=↘",
-  };
 
   switch (msg.type) {
     case 'change-number':
       handleNumberChange(msg.value);
       break;
     case 'insert-markup-frame':
-      await handleInsertMarkupFrame(msg, position);
+      await handleInsertMarkupFrame(msg);
       break;
   }
 };
@@ -32,7 +20,11 @@ function handleNumberChange (value: number | undefined) {
   }
 }
 
-async function handleInsertMarkupFrame (msg: { marker?: string; addSpace?: number }, position: { [key: string]: string }) {
+async function handleInsertMarkupFrame (msg: { marker: string; spacing: number }) {
+  await figma.loadFontAsync({
+    family: 'Inter',
+    style: 'Regular',
+  });
   const selectedFrame = figma.currentPage.selection[0];
 
   if (!selectedFrame) {
@@ -40,89 +32,106 @@ async function handleInsertMarkupFrame (msg: { marker?: string; addSpace?: numbe
     return;
   }
 
-  const instanceName = msg.marker ? position[msg.marker] : null;
-
   if (selectedFrame && ["FRAME", "INSTANCE", "TEXT"].includes(selectedFrame.type)) {
-    const componentSet = figma.currentPage.findOne(node => node.name === "Specs-Component" && node.type === "COMPONENT_SET") as ComponentSetNode;
+    const frame = createFrame(selectedFrame, msg)
+    figma.currentPage.appendChild(frame);
 
-    if (componentSet) {
-      const variant = componentSet.findOne(node => node.name === instanceName && node.type === "COMPONENT") as ComponentNode;
+    initialNumber = incrementNumber(initialNumber)
 
-      if (variant) {
-        const instance = variant.createInstance();
-        const addSpaceValue = msg.addSpace || 0;
-
-        adjustInstancePosition(instance, selectedFrame, addSpaceValue, msg.marker);
-        figma.currentPage.appendChild(instance);
-
-        const textNode = instance.findOne(node => node.type === "TEXT" && node.characters === "0") as TextNode;
-
-        if (textNode) {
-          await figma.loadFontAsync(textNode.fontName as FontName);
-          textNode.characters = initialNumber;
-        }
-        initialNumber = incrementNumber(initialNumber)
-
-        incrementNumber(initialNumber.toString())
-
-        figma.notify("Instância criada com sucesso");
-      } else {
-        figma.notify("Variante não encontrada");
-      }
-    } else {
-      figma.notify("ComponentSet não encontrado");
-    }
+    figma.notify("Instância criada com sucesso");
+  } else {
+    figma.notify("Select a frame, instance or text");
   }
 }
 
-function adjustInstancePosition (
-  instance: InstanceNode,
-  selectedFrame: FrameNode | InstanceNode | SceneNode,
-  addSpaceValue: number,
-  marker?: string
-) {
+function createFrame (selectedFrame: FrameNode | SceneNode, msg: { marker: string; spacing: number }) {
   let xAdjust = 0;
   let yAdjust = 0;
+  let xLabel = 0
+  let yLabel = 0
   let shouldResizeWidth = true;
   let shouldResizeHeight = true;
 
-  switch (marker) {
+  switch (msg.marker) {
     case "top_left":
-      xAdjust = -addSpaceValue;
-      yAdjust = -addSpaceValue;
+      xAdjust = -msg.spacing;
+      yAdjust = -msg.spacing;
+      xLabel = -msg.spacing / 2;
+      yLabel = -msg.spacing / 2;
       break;
     case "top_center":
-      yAdjust = -addSpaceValue;
+      yAdjust = -msg.spacing;
+      xLabel = (selectedFrame.width / 2) + (-msg.spacing / 2)
+      yLabel = -msg.spacing / 2;
       shouldResizeWidth = false;
       break;
     case "top_right":
-      yAdjust = -addSpaceValue;
+      yAdjust = -msg.spacing;
+      xLabel = selectedFrame.width + msg.spacing / 2
+      yLabel = -msg.spacing / 2;
       break;
     case "middle_left":
-      xAdjust = -addSpaceValue;
+      xAdjust = -msg.spacing;
+      xLabel = -msg.spacing / 2;
+      yLabel = (selectedFrame.height / 2) + (-msg.spacing / 2)
       shouldResizeHeight = false; // Não ajusta a altura
       break;
     case "middle_right":
+      xLabel = selectedFrame.width + (msg.spacing / 2)
+      yLabel = (selectedFrame.height / 2) + (-msg.spacing / 2)
       shouldResizeHeight = false; // Não ajusta a altura
       break;
     case "bottom_left":
-      xAdjust = -addSpaceValue;
+      xAdjust = -msg.spacing;
+      xLabel = -msg.spacing / 2;
+      yLabel = selectedFrame.height + (msg.spacing / 2)
       break;
     case "bottom_center":
+      xLabel = (selectedFrame.width / 2) + (-msg.spacing / 2)
+      yLabel = selectedFrame.height + (msg.spacing / 2)
       shouldResizeWidth = false; // Não ajusta a largura
       break;
     case "bottom_right":
+      xLabel = selectedFrame.width + (msg.spacing / 2)
+      yLabel = selectedFrame.height + (msg.spacing / 2)
       break;
   }
 
-  instance.x = selectedFrame.absoluteTransform[0][2] + xAdjust;
-  instance.y = selectedFrame.absoluteTransform[1][2] + yAdjust;
+  const frame = figma.createFrame()
+  frame.name = `specs-marker`
+  frame.fills = [{ type: 'SOLID', color: { r: 0, g: 0, b: 0 }, opacity: 0 }]
+  frame.strokes = [{ type: 'SOLID', color: figma.util.rgb(`#005CA9`) }]
+  frame.x = selectedFrame.absoluteTransform[0][2] + xAdjust;
+  frame.y = selectedFrame.absoluteTransform[1][2] + yAdjust;
+  frame.clipsContent = false
+  const newWidth = shouldResizeWidth ? selectedFrame.width + msg.spacing : selectedFrame.width;
+  const newHeight = shouldResizeHeight ? selectedFrame.height + msg.spacing : selectedFrame.height;
+  frame.resize(newWidth, newHeight)
 
-  // Só redimensiona se for necessário
-  const newWidth = shouldResizeWidth ? selectedFrame.width + addSpaceValue : selectedFrame.width;
-  const newHeight = shouldResizeHeight ? selectedFrame.height + addSpaceValue : selectedFrame.height;
+  const label = createLabel()
+  frame.appendChild(label)
 
-  instance.resize(newWidth, newHeight);
+  label.x = xLabel
+  label.y = yLabel
+
+  return frame
+}
+
+function createLabel () {
+  const valueComponent = figma.createFrame()
+  valueComponent.fills = [{ type: 'SOLID', color: figma.util.rgb(`#005CA9`) }]
+  valueComponent.cornerRadius = 500
+  valueComponent.layoutMode = "HORIZONTAL"
+  valueComponent.primaryAxisAlignItems = "CENTER"
+  valueComponent.counterAxisAlignItems = `CENTER`
+  valueComponent.resize(24, 24)
+
+  const textNode = figma.createText()
+  textNode.characters = initialNumber;
+  textNode.fills = [{ type: 'SOLID', color: figma.util.rgb(`#FFFFFF`) }]
+
+  valueComponent.appendChild(textNode)
+  return valueComponent
 }
 
 function incrementNumber (number: string): string {
@@ -135,3 +144,4 @@ function incrementNumber (number: string): string {
     return splitedNumber.join(".");
   }
 }
+
