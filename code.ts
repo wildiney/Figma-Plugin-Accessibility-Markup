@@ -1,6 +1,6 @@
 let initialNumber = '1'
 
-figma.showUI(__html__, { width: 300, height: 400, themeColors: true })
+figma.showUI(__html__, { width: 300, height: 480, themeColors: true })
 
 figma.ui.onmessage = async (msg) => {
   switch (msg.type) {
