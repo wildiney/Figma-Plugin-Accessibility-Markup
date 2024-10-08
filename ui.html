@@ -9,6 +9,7 @@
         font-family: Inter, Arial, Verdana, sans-serif;
         background-color: var(--figma-color-bg);
       }
+
       h1,
       h2,
       h3,
@@ -17,97 +18,119 @@
       h6 {
         color: var(--figma-color-text);
       }
+
       .form-group {
         display: flex;
         flex-direction: column;
         margin-bottom: 2rem;
       }
+
       label,
       legend {
         margin-bottom: 0.5rem;
-        font-size: 0.95rem;
-        font-weight: 700;
+        font-size: 0.8rem;
+        font-weight: 600;
         color: var(--figma-color-text);
       }
+
       .input-controls {
         width: 100%;
         display: flex;
         flex-direction: row;
         gap: 1rem;
+        margin-bottom: 1rem;
       }
-      .input-controls input {
+
+      input {
         width: 100%;
-        height: 3rem;
-        font-size: 1.5rem;
+        height: auto;
         text-align: center;
-        border: 2px solid var(--figma-color-border-strong);
-        background-color: var(--figma-color-bg);
+        background-color: var(--figma-color-bg-pressed);
+        border: none;
         color: var(--figma-color-text);
-        font-size: 2rem;
+        font-size: 1rem;
         border-radius: 0.5rem;
+        outline-color: var(--figma-color-border-brand);
+        padding: 0.5rem;
       }
+
+      button {
+        border: none;
+        background-color: var(--figma-color-bg-pressed);
+        color: var(--figma-color-text);
+        font-size: 1rem;
+        border-radius: 0.5rem;
+        cursor: pointer;
+        padding: 0.8rem 1rem;
+      }
+      button:hover {
+        background-color: var(--figma-color-bg-selected-hover);
+      }
+
       .grid {
-        width: 5rem;
-        height: 5rem;
+        width: 4.5rem;
+        height: 4.5rem;
         display: grid;
         grid-template-columns: repeat(3, 1fr);
         align-items: center;
       }
+
       .grid label {
         align-self: center;
         justify-self: center;
       }
+
       .grid label,
       .grid input {
         margin: 0;
       }
+
       fieldset {
         border: none;
         margin: 0;
         padding: 0;
       }
-      button {
-        border: 2px solid var(--figma-color-border-strong);
-        background-color: var(--figma-color-bg);
-        color: var(--figma-color-text);
-        border-radius: 0.5rem;
-        cursor: pointer;
-      }
-      button.lg {
-        font-size: 2rem;
-      }
-      button.md {
-        font-size: 1.5rem;
-      }
-      button.sm {
-        font-size: 1rem;
-      }
 
-      #increment-item,
-      #decrement-item {
-        height: 3rem;
-        aspect-ratio: 1/1;
-      }
       #reset-item {
         height: 3rem;
         aspect-ratio: 2/1;
+        width: 100%;
+      }
+
+      /* Utils */
+      .flex {
+        display: flex;
+        flex: 1;
+      }
+      .aspect-1-1 {
+        aspect-ratio: 1/1;
+      }
+      .gap-4 {
+        gap: 1rem;
+      }
+      .h-3 {
+        height: 3rem;
       }
     </style>
   </head>
+
   <body>
     <h2>Accessibility Markup</h2>
 
     <div class="form-group">
       <label for="number"
-        >Item number <small>(Ex.: 1, 1.1, 1.1.1, etc.)</small>:</label
-      >
+        >Item number <small> (Ex.: 1, 1.1, 1.1.1, etc.)</small>:
+      </label>
       <div class="input-controls">
-        <button id="decrement-item" class="lg">-</button>
-        <input type="text" name="number" id="number" value="1" />
-        <button id="increment-item" class="lg">+</button>
+        <button id="decrement-item" class="aspect-1-1 h-3">-</button>
+        <input type="text" name="number" id="number" value="1" class="h3" />
+        <button id="increment-item" class="aspect-1-1 h-3">+</button>
       </div>
+
+      <button id="reset-item">Reset</button>
     </div>
-    <div style="display: flex; width: 100%; gap: 1rem">
+
+    <div class="flex gap-4">
       <div class="form-group">
         <fieldset>
           <legend>Anchor:</legend>
@@ -148,19 +171,22 @@
       <button
         id="insert-markup-frame"
         class="sm"
-        style="height: 4.1rem; align-self: top; margin-top: 2rem; width: 100%"
+        style="height: 4.1rem; align-self: top; margin-top: 1.5rem; width: 100%"
       >
         Insert Markup Frame
       </button>
     </div>
     <div class="form-group">
-      <label for="addSpace"> Add space </label>
-      <input type="number" id="addSpace" value="24" />
+      <label for="addSpace">Space to label</label>
+      <div class="input-controls">
+        <input type="number" id="addSpace" value="24" class="h-3" />
+      </div>
     </div>
     <script>
       const itemNumberInput = document.getElementById('number')
       const incrementItemButton = document.getElementById('increment-item')
       const decrementItemButton = document.getElementById('decrement-item')
+      const resetItemButton = document.getElementById('reset-item')
       const insertMarkupButton = document.getElementById('insert-markup-frame')
 
       function sendNewNumberItem(value) {
@@ -196,6 +222,10 @@
         changeNumber('increment')
       }
 
+      resetItemButton.onclick = () => {
+        sendNewNumberItem(0)
+      }
+
       decrementItemButton.onclick = () => {
         changeNumber('decrement')
       }
@@ -205,7 +235,7 @@
         const marker = document.querySelector(
           'input[name="position"]:checked'
         ).value
-        const space = parseInt(document.getElementById('addSpace').value)
+        const space = parseInt(document.getElementById('addSpace').value) || 0
 
         parent.postMessage(
           {
@@ -213,7 +243,7 @@
               type: 'insert-markup-frame',
               marker: marker,
               value: value,
-              addSpace: space,
+              spacing: space,
             },
           },
           '*'
